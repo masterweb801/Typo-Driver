@@ -13,17 +13,21 @@ def handle_message():
         message = data.get("message", "")
 
         if message:
-            print(f"Received message: {message}")
+            if message == "<-RETURN->":
+                pyautogui.press("enter")
 
-            pyperclip.copy(message)
-            pyautogui.hotkey("ctrl", "v")
+            else:
+                print(f"Received message: {message}")
 
-            return (
-                jsonify(
-                    {"status": "success", "message": "Message received and typed."}
-                ),
-                200,
-            )
+                pyperclip.copy(message)
+                pyautogui.hotkey("ctrl", "v")
+
+                return (
+                    jsonify(
+                        {"status": "success", "message": "Message received and typed."}
+                    ),
+                    200,
+                )
         else:
             return jsonify({"status": "error", "message": "No message provided."}), 400
     except Exception as e:
