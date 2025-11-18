@@ -1,38 +1,67 @@
-import socket
-import pyautogui
-import pyperclip
+from os import getenv
+from pyperclip import copy
+from dotenv import load_dotenv
+from pyautogui import press, hotkey
 from flask import Flask, request, jsonify
+from socket import gethostbyname, gethostname
 
+
+load_dotenv()
 app = Flask(__name__)
+token = getenv("SECRET")
 
 
 @app.route("/send_message", methods=["POST"])
 def handle_message():
     try:
         data = request.get_json()
-        message = data.get("message", "")
+        auth = data.get("auth", "")
 
-        if message:
-            if message == "<-RETURN->":
-                pyautogui.press("enter")
+        if auth == token:
+            message = data.get("message", "")
 
-            else:
-                print(f"Received message: {message}")
+            if message:
+                if message == "<-RETURN->":
+                    press("enter")
+                    print("Pressed Enter")
 
-                pyperclip.copy(message)
-                pyautogui.hotkey("ctrl", "v")
+                elif message == "<-BACKSPACE->":
+                    press("backspace")
+                    print("Pressed Backspace")
+
+                else:
+                    copy(message)
+                    hotkey("ctrl", "v")
+                    print("Message written")
 
                 return (
                     jsonify(
-                        {"status": "success", "message": "Message received and typed."}
+                        {
+                            "status": "success",
+                            "message": "Message received and typed.",
+                        }
                     ),
                     200,
                 )
+            else:
+                print("Got Empty Message!")
+                return (
+                    jsonify({"status": "error", "message": "No message provided."}),
+                    400,
+                )
         else:
-            return jsonify({"status": "error", "message": "No message provided."}), 400
+            print("Authorization Error!")
+            return (
+                jsonify({"status": "error", "message": "Authorization Error!"}),
+                403,
+            )
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(str(e))
+        return (jsonify({"status": "error", "message": str(e)}), 500)
 
 
 if __name__ == "__main__":
-    app.run(host=socket.gethostbyname(socket.gethostname()), port=6969, debug=True)
+    from waitress import serve
+
+    print("Server Started ...")
+    serve(app=app, host=gethostbyname(gethostname()), port=6969)
