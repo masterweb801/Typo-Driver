@@ -9,6 +9,7 @@ from socket import gethostbyname, gethostname
 load_dotenv()
 app = Flask(__name__)
 token = getenv("SECRET")
+port = getenv("PORT")
 
 
 @app.route("/send_message", methods=["POST"])
@@ -64,4 +65,4 @@ if __name__ == "__main__":
     from waitress import serve
 
     print("Server Started ...")
-    serve(app=app, host=gethostbyname(gethostname()), port=6969)
+    serve(app=app, host=gethostbyname(gethostname()), port=port)
