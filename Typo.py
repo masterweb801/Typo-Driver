@@ -1,15 +1,28 @@
+from sys import exit
 from os import getenv
+from ctypes import windll
 from pyperclip import copy
 from dotenv import load_dotenv
 from pyautogui import press, hotkey
 from flask import Flask, request, jsonify
-from socket import gethostbyname, gethostname
+from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_STREAM
 
 
 load_dotenv()
 app = Flask(__name__)
 token = getenv("SECRET")
 port = getenv("PORT")
+
+
+def check_single_instance(port: int):
+    s = socket(AF_INET, SOCK_STREAM)
+    try:
+        s.bind(("127.0.0.1", port))
+    except OSError:
+        windll.user32.MessageBoxW(0, "App is already running!", "Warning", 0)
+        exit(0)
+
+    return s
 
 
 @app.route("/send_message", methods=["POST"])
@@ -62,6 +75,8 @@ def handle_message():
 
 
 if __name__ == "__main__":
+    lock_socket = check_single_instance(int(port))
+
     from waitress import serve
 
     print("Server Started ...")
