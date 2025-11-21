@@ -6,12 +6,16 @@ from dotenv import load_dotenv
 from pyautogui import press, hotkey
 from flask import Flask, request, jsonify
 from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_STREAM
+from pathlib import Path
 
 
-load_dotenv()
-app = Flask(__name__)
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(env_path)
 token = getenv("SECRET")
 port = getenv("PORT")
+host = gethostbyname(gethostname())
+
+app = Flask(__name__)
 
 
 def check_single_instance(port: int):
@@ -79,5 +83,5 @@ if __name__ == "__main__":
 
     from waitress import serve
 
-    print("Server Started ...")
-    serve(app=app, host=gethostbyname(gethostname()), port=port)
+    print(f"Server Started On: http://{host}:{port}")
+    serve(app=app, host=host, port=port)
